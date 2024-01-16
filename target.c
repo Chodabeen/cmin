@@ -12,6 +12,7 @@ int main() {
 
 	if ((s = read(0, buf, 31)) > 0) {
 		buf[s + 1] = 0x0 ;
-		fprintf(stderr, ">%s\n", buf) ;
+		write(stderr, buf, 32);
+		// fprintf(stderr, ">%s\n", buf) ;
 	}
 }
