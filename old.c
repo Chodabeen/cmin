@@ -24,6 +24,7 @@ int read_bytes(int fd, void * buf, size_t len) {
         if (_read == 0) {
             return 1 ;
         }
+        // fprintf(stderr, "read: %ld\n", _read);
         p += _read ;
         acc += _read ;
     }
@@ -81,15 +82,18 @@ int check_crashing() {
 char * reduce(char * t) {
     int exit_code ;
     int i;
+
+    // fprintf(stderr, "REDUCE: %s", t);
     
     int s = strlen(t) - 1;
     while (s > 0) {
         fprintf(stderr, "s: %d\n", s);
-
+        
         char * head = (char*) malloc(sizeof(char) * 4097);
         char * tail = (char*) malloc(sizeof(char) * 4097);
 
         for (i = 0; i <= strlen(t) - s; i++) {
+            // fprintf(stderr, "head+tail i:%d\n", i);
             // make pipes
             if (pipe(input_pipes) != 0) {
                 perror("Error") ;
@@ -105,6 +109,13 @@ char * reduce(char * t) {
             head[i - 1 + 1] = '\0';
             tail[strlen(t) - 1 - i - s + 1] = '\0';
             strcat(head, tail);
+
+            // fprintf(stderr, "head: %s", head);
+            // fprintf(stderr, "tail: %slen: %ld", tail, strlen(tail));
+
+            // fprintf(stderr, "i: %d\n", i);
+            // fprintf(stderr, "t: %s\n", t);
+            // fprintf(stderr, "head+tail: %s", head);
 
             // run target using head+tail
             if ((child_pid = fork()) == 0) {
@@ -128,6 +139,7 @@ char * reduce(char * t) {
             }
             // check head+tail satisfies crash
             if (check_crashing() == 1) {
+                // fprintf(stderr, "head+tail satisfies crash!!\n");
                 close (output_pipes[0]);
                 return reduce(head);    // current head has head+tail
             }
@@ -152,6 +164,10 @@ char * reduce(char * t) {
             strncpy(mid, t + i, s);
             mid[s] = '\0';
 
+            // fprintf(stderr, "i: %d\n", i);
+            // fprintf(stderr, "mid: %s\n", mid);
+            // fprintf(stderr, "len: %ld\n", strlen(mid));
+
             // run target using mid
             if ((child_pid = fork()) == 0) {
             	run_target();
@@ -175,6 +191,7 @@ char * reduce(char * t) {
             }
             // check mid satisfies crash
             if (check_crashing() == 1) {
+                // fprintf(stderr, "mid satisfies crash!!\n");
                 close (output_pipes[0]);
                 return reduce(mid);    // current head has head+tail
             }
@@ -221,7 +238,6 @@ int main(int argc, char * argv[]) {
     strcpy(target_pg, argv[7]);
     if (argc == 9) {
         strcpy(options, argv[8]);
-        fprintf(stderr, "opt: %s\n", options);
     }
 
     // check option
@@ -237,6 +253,8 @@ int main(int argc, char * argv[]) {
     char buf[4097];
     int input_fd = open(input_file, O_RDONLY);
     read_bytes(input_fd, buf, 4096);
+    // fprintf(stderr, "main: %s\n", buf);
+    // fprintf(stderr, "size: %ld\n", strlen(buf));
 
     close (input_fd);
 
