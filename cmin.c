@@ -65,6 +65,8 @@ void run_target() {
 	exit(0) ;
 }
 
+void
+
 // if crash exists return 1, otherwise 0
 int check_crashing() {
     char buf[4097];
@@ -129,6 +131,8 @@ char * reduce(char * t) {
             // check head+tail satisfies crash
             if (check_crashing() == 1) {
                 close (output_pipes[0]);
+                free (t);
+                free (tail);
                 return reduce(head);    // current head has head+tail
             }
             close (output_pipes[0]);
@@ -176,6 +180,7 @@ char * reduce(char * t) {
             // check mid satisfies crash
             if (check_crashing() == 1) {
                 close (output_pipes[0]);
+                free (t);
                 return reduce(mid);    // current head has head+tail
             }
             close (output_pipes[0]);
@@ -234,7 +239,7 @@ int main(int argc, char * argv[]) {
     signal(SIGALRM, handler) ;
 
     // read input_file and save them to buf
-    char buf[4097];
+    char  * buf = (char*) malloc(sizeof(char) * 4097);
     int input_fd = open(input_file, O_RDONLY);
     read_bytes(input_fd, buf, 4096);
 
@@ -242,7 +247,7 @@ int main(int argc, char * argv[]) {
 
     // open output_file and write reduced sentence
     int output_fd = open(output_file, O_CREAT | O_WRONLY | O_TRUNC, 0644);
-    fprintf(stderr, "reduced: %s\n", minimize(buf));
-    // write_bytes(output_fd, minimize(buf), strlen(minimize(buf)));
+    // fprintf(stderr, "reduced: %s\n", minimize(buf));
+    write_bytes(output_fd, minimize(buf), strlen(minimize(buf)));
     close(output_fd);
 }
